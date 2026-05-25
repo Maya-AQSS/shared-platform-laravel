@@ -1,0 +1,24 @@
+{
+    "name": "maya/shared-platform-laravel",
+    "description": "Platform-level utilities shared by Maya Laravel microservices: PostgreSQL FDW migration helpers and other infrastructure primitives that are not specific to a single domain.",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/Maya-AQSS/shared-platform-laravel",
+    "support": {
+        "issues": "https://github.com/Maya-AQSS/shared-platform-laravel/issues",
+        "source": "https://github.com/Maya-AQSS/shared-platform-laravel"
+    },
+    "version": "0.1.0",
+    "require": {
+        "php": "^8.4",
+        "illuminate/database": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maya\\Platform\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
