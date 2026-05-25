@@ -1,14 +1,13 @@
 {
-    "name": "maya/shared-platform-laravel",
-    "description": "Platform-level utilities shared by Maya Laravel microservices: PostgreSQL FDW migration helpers and other infrastructure primitives that are not specific to a single domain.",
+    "name": "ceedcv-maya/shared-platform-laravel",
+    "description": "Cross-cutting platform utilities for Laravel microservices: PostgreSQL FDW migrations helpers, locale providers, shared contracts.",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/Maya-AQSS/shared-platform-laravel",
     "support": {
-        "issues": "https://github.com/Maya-AQSS/shared-platform-laravel/issues",
+        "issues": "https://github.com/Maya-AQSS/maya_platform/issues",
         "source": "https://github.com/Maya-AQSS/shared-platform-laravel"
     },
-    "version": "0.1.0",
     "require": {
         "php": "^8.4",
         "illuminate/database": "^11.0 || ^12.0 || ^13.0",
@@ -20,5 +19,21 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "keywords": [
+        "laravel",
+        "postgres",
+        "fdw",
+        "platform",
+        "microservices",
+        "ceedcv",
+        "maya"
+    ],
+    "authors": [
+        {
+            "name": "CEEDCV",
+            "email": "info@ceedcv.es",
+            "homepage": "https://ceedcv.es"
+        }
+    ]
 }
