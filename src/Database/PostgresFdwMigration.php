@@ -62,11 +62,31 @@ final class PostgresFdwMigration
             OPTIONS (host '{$safeHost}', port '{$safePort}', dbname '{$safeDatabase}')
         ");
 
-        // ALTER SERVER OPTIONS (SET ...) requiere que la opción exista. Como
-        // CREATE acaba de garantizar host/port/dbname, SET es seguro.
+        // ALTER SERVER OPTIONS (SET ...) requiere que la opción exista Y que
+        // current_user sea el owner del server. En el patrón típico, el server
+        // lo crea un user privilegiado (maya) vía ensure-slot-resources.sh
+        // ANTES de que las migraciones Laravel corran como user de aplicación
+        // (auth_user, audit_user, etc.). El user de app NO es owner, así que
+        // un ALTER SERVER directo aborta con "must be owner of foreign server".
+        //
+        // Solución: ejecutamos el ALTER dentro de un DO block que verifica el
+        // ownership y solo hace ALTER si current_user es el owner. Caso
+        // contrario, asume que el server fue creado correctamente por el user
+        // privilegiado y deja las opciones tal cual.
+        $safeServer = self::escapeSqlLiteral($serverName);
         DB::statement("
-            ALTER SERVER {$serverName}
-            OPTIONS (SET host '{$safeHost}', SET port '{$safePort}', SET dbname '{$safeDatabase}')
+            DO \$\$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_foreign_server s
+                    JOIN pg_user u ON s.srvowner = u.usesysid
+                    WHERE s.srvname = '{$safeServer}'
+                      AND u.usename = current_user
+                ) THEN
+                    EXECUTE 'ALTER SERVER {$serverName} OPTIONS (SET host ''{$safeHost}'', SET port ''{$safePort}'', SET dbname ''{$safeDatabase}'')';
+                END IF;
+            END
+            \$\$
         ");
 
         // USER MAPPING: CREATE IF NOT EXISTS solo crea si falta; el password
