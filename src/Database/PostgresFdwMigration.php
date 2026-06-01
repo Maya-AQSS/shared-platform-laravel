@@ -49,12 +49,30 @@ final class PostgresFdwMigration
         $safeUsername = self::escapeSqlLiteral($username);
         $safePassword = self::escapeSqlLiteral($password);
 
+        // CREATE SERVER IF NOT EXISTS no actualiza opciones cuando el server
+        // ya existe. Si el slot fue creado con un host distinto (p.ej.
+        // 'maya_infra_postgres' antes del fix que apunta a 'maya-<slot>-postgres'),
+        // un re-migrate dejaría el FDW apuntando al host viejo y todos los
+        // endpoints que lo consulten devolverían 500 hasta correr el hotfix.
+        // Forzamos ALTER SERVER después del CREATE para que las opciones siempre
+        // queden alineadas con el .env actual, incluso en re-runs idempotentes.
         DB::statement("
             CREATE SERVER IF NOT EXISTS {$serverName}
             FOREIGN DATA WRAPPER postgres_fdw
             OPTIONS (host '{$safeHost}', port '{$safePort}', dbname '{$safeDatabase}')
         ");
 
+        // ALTER SERVER OPTIONS (SET ...) requiere que la opción exista. Como
+        // CREATE acaba de garantizar host/port/dbname, SET es seguro.
+        DB::statement("
+            ALTER SERVER {$serverName}
+            OPTIONS (SET host '{$safeHost}', SET port '{$safePort}', SET dbname '{$safeDatabase}')
+        ");
+
+        // USER MAPPING: CREATE IF NOT EXISTS solo crea si falta; el password
+        // normalmente no cambia entre runs. Si necesitas rotar credenciales
+        // sin re-crear el slot, usa hotfix-fdw-host.sh o dropFdwServerAndUserMapping
+        // seguido de createFdwServerWithUserMapping.
         DB::statement("
             CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
             SERVER {$serverName}
